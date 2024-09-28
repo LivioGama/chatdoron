@@ -1,0 +1,27 @@
+{
+  "name": "frontend",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "dev": "npm run watchman-del && EXPO_USE_METRO_WORKSPACE_ROOT=1 expo start --web --clear",
+    "android": "npm run watchman-del && EXPO_USE_METRO_WORKSPACE_ROOT=1 expo run:android ",
+    "ios": "npm run watchman-del && EXPO_USE_METRO_WORKSPACE_ROOT=1 expo run:ios",
+    "start": "npm run watchman-del && EXPO_USE_METRO_WORKSPACE_ROOT=1 expo start --dev-client --clear",
+    "build": "EXPO_USE_METRO_WORKSPACE_ROOT=1 expo export -p web && cp staticwebapp.config.json dist/staticwebapp.config.json && cp vercel.json dist/vercel.json",
+    "forward-android": "adb reverse tcp:1337 tcp:1337",
+    "forward-serveo": "ssh -R 80:localhost:1337 serveo.net",
+    "pod-install": "cd ios && pod install",
+    "expo-rebuild": "npx expo prebuild",
+    "expo-rebuild-clean-ios": "bunx expo prebuild -p ios --clean",
+    "expo-rebuild-clean-android": "bunx expo prebuild -p android --clean",
+    "watchman-del": "command -v watchman >/dev/null 2>&1 && watchman watch-del '../../' || echo 'Watchman not found (`brew install watchman`), skipping.'"
+  },
+  "dependencies": {
+    "expo": "~51.0.28",
+    "react": "18.2.0",
+    "react-native": "0.74.5",
+    "react-native-ficus-ui": "^1.0.0",
+    "react-native-reanimated": "^3.15.3"
+  }
+}
