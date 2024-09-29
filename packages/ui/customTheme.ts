@@ -9,10 +9,6 @@ const customTheme = {
     textSecondary: '#5A5A5A',
     textAccent: '#FFD166',
   },
-  fontFamily: {
-    normal: 'Open Sans',
-    bold: 'Merriweather',
-  },
   fontSize: {
     '2xs': 10,
     xs: 12,

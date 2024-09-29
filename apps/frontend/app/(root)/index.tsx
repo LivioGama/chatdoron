@@ -1,13 +1,15 @@
-import Gallery from '@/components/Gallery'
+import {Hero} from '@/components/Hero'
+import ParallaxGallery from '@/components/ParallaxGallery'
+import {Dimensions} from 'react-native'
 import {Box} from 'react-native-ficus-ui'
 
-const Index = () => (
-  <Box flex={1}>
-    {/*<ParallaxScrollView hero={<Hero />} headerHeight={200}>*/}
-    {/*  <Text> Hello</Text>*/}
-    {/*</ParallaxScrollView>*/}
-    <Gallery />
-  </Box>
-)
+const Index = () => {
+  let headerHeight = 0.3 * Dimensions.get('window').height
+  return (
+    <Box flex={1}>
+      <ParallaxGallery hero={<Hero headerHeight={headerHeight} />} headerHeight={headerHeight} />
+    </Box>
+  )
+}
 
 export default Index

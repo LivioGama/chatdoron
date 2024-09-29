@@ -4,20 +4,49 @@ import {MasonryFlashList} from '@shopify/flash-list'
 import {Image} from 'expo-image'
 import isEmpty from 'lodash/isEmpty'
 import Media from 'models/Media'
-import {useCallback, useMemo, useState} from 'react'
+import React, {useCallback, useMemo, useState} from 'react'
 import {Dimensions, Image as RNImage} from 'react-native'
 import {Box, Center, Spinner} from 'react-native-ficus-ui'
+import Animated, {
+  interpolate,
+  useAnimatedRef,
+  useAnimatedStyle,
+  useScrollViewOffset,
+} from 'react-native-reanimated'
 import useAsyncEffect from 'use-async-effect'
 
-const columnNum = 5
 const windowWidth = Dimensions.get('window').width
 const windowHeight = Dimensions.get('window').height
 const GAP = 32
+const columnNum = 5
 
-const Gallery = () => {
+interface ParallaxGalleryProps {
+  hero: React.ReactElement
+  headerHeight: number
+}
+
+const ParallaxGallery: React.FC<ParallaxGalleryProps> = ({hero, headerHeight}) => {
+  const scrollRef = useAnimatedRef<Animated.ScrollView>()
+  const scrollOffset = useScrollViewOffset(scrollRef)
   const [measuredMedias, setMeasuredMedias] = useState([])
   const {data, onRefresh, onInfinite, isFetching} = useMedias()
-  const imageWidth = useMemo(() => windowWidth / columnNum, [windowWidth, columnNum])
+  const imageWidth = useMemo(() => windowWidth / columnNum, [])
+
+  const headerAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateY: interpolate(
+          scrollOffset.value,
+          [-headerHeight, 0, headerHeight],
+          [-headerHeight / 2, 0, headerHeight * 0.75],
+        ),
+      },
+      {
+        scale: interpolate(scrollOffset.value, [-headerHeight, 0, headerHeight], [2, 1, 1]),
+      },
+    ] as const,
+  }))
+
   const medias = useMemo(
     () =>
       data?.pages.flatMap(page =>
@@ -46,7 +75,7 @@ const Gallery = () => {
           },
           error => {
             console.error('Error measuring image:', error)
-            resolve({...media, aspectRatio: 1, calculatedHeight: imageWidth}) // Fallback to square if measurement fails
+            resolve({...media, aspectRatio: 1, calculatedHeight: imageWidth})
           },
         )
       }),
@@ -89,32 +118,50 @@ const Gallery = () => {
         ? windowHeight / 2
         : measuredMedias.reduce((sum, media) => sum + media.calculatedHeight, 0) /
           measuredMedias.length,
-    [measuredMedias, windowHeight],
+    [measuredMedias],
   )
 
-  return isEmpty(medias) ? (
-    <Spinner size='large' />
-  ) : (
-    <MasonryFlashList
-      data={measuredMedias}
-      numColumns={columnNum}
-      renderItem={renderItem}
-      estimatedItemSize={averageItemHeight}
-      onRefresh={onRefresh}
-      contentContainerStyle={{paddingHorizontal: GAP / 2, backgroundColor: '#E6DBC8'}}
-      onEndReached={onInfinite}
-      onEndReachedThreshold={0.5}
-      ItemSeparatorComponent={() => <Box h={GAP} />}
-      refreshing={isFetching}
-      ListFooterComponent={
-        isFetching && (
-          <Center w='100%' h={50}>
-            <Spinner size={14} animating={isFetching} color='grey' />
-          </Center>
-        )
-      }
-    />
+  return (
+    <Animated.ScrollView ref={scrollRef} scrollEventThrottle={16}>
+      <Animated.View
+        style={[
+          {
+            height: headerHeight,
+            overflow: 'hidden',
+          },
+          headerAnimatedStyle,
+        ]}>
+        {hero}
+      </Animated.View>
+      {isEmpty(medias) ? (
+        <Spinner size='large' />
+      ) : (
+        <MasonryFlashList
+          data={measuredMedias}
+          numColumns={columnNum}
+          renderItem={renderItem}
+          estimatedItemSize={averageItemHeight}
+          onRefresh={onRefresh}
+          contentContainerStyle={{
+            paddingHorizontal: GAP / 2,
+            paddingVertical: GAP,
+            backgroundColor: '#E6DBC8',
+          }}
+          onEndReached={onInfinite}
+          onEndReachedThreshold={0.5}
+          ItemSeparatorComponent={() => <Box h={GAP} />}
+          refreshing={isFetching}
+          ListFooterComponent={
+            isFetching && (
+              <Center w='100%' h={50}>
+                <Spinner size={14} animating={isFetching} color='grey' />
+              </Center>
+            )
+          }
+        />
+      )}
+    </Animated.ScrollView>
   )
 }
 
-export default Gallery
+export default ParallaxGallery
