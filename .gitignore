@@ -44,3 +44,4 @@ sentry.properties
 .pnpm-debug.log
 dist/
 playground/*
+upload_local_env.sh
