@@ -7,4 +7,6 @@ export default class Media extends Z.class({
   width: z.number().int().positive(),
   height: z.number().int().positive(),
   picture: z.string(),
-}) {}
+}) {
+  public calculatedHeight: number | undefined
+}
