@@ -1,4 +1,4 @@
-import Providers from '@/app/Providers'
+import Providers from '@/components/Providers'
 import {
   Merriweather_400Regular,
   Merriweather_700Bold,
@@ -13,20 +13,18 @@ import {enable$GetSet} from '@legendapp/state/config/enable$GetSet'
 import {useFonts} from 'expo-font'
 import {Navigator, Slot, SplashScreen} from 'expo-router'
 import 'react-native-gesture-handler'
-import {SingleChildrenProps} from 'models/interfaces'
+import {isProd} from 'models/consts'
 import Store from 'models/Store'
 import Plausible from 'plausible-tracker'
-import {Suspense, useEffect} from 'react'
-import {Spinner, useToast} from 'react-native-ficus-ui'
-import Toast from 'react-native-toast-message'
+import {useEffect} from 'react'
+import {useToast} from 'react-native-ficus-ui'
 import {defaultNavOptions} from 'ui/screenOptions'
-import toastConfig from 'ui/toastConfig'
 
 enable$GetSet()
 
 SplashScreen.preventAutoHideAsync()
 
-const FontLoader = ({children}: SingleChildrenProps) => {
+const RootLayout = () => {
   const [fontsLoaded] = useFonts({
     Merriweather_400Regular,
     Merriweather_700Bold,
@@ -38,34 +36,24 @@ const FontLoader = ({children}: SingleChildrenProps) => {
 
   useEffect(() => {
     if (!fontsLoaded) return
-    const {enableAutoPageviews} = Plausible()
-    enableAutoPageviews()
+    if (isProd) {
+      const {enableAutoPageviews} = Plausible()
+      enableAutoPageviews()
+    }
     SplashScreen.hideAsync()
   }, [fontsLoaded])
 
-  if (!fontsLoaded) {
-    throw new Promise(resolve => setTimeout(resolve, 100))
-  }
-
-  return children
-}
-
-const RootLayout = () => {
-  Store.toast.set(useToast())
-
-  return (
-    <Providers>
-      <Suspense fallback={<Spinner size='large' />}>
-        <FontLoader>
-          <Navigator screenOptions={defaultNavOptions}>
-            <Navigator.Screen name='/' />
-            <Toast config={toastConfig} />
-            <Slot />
-          </Navigator>
-        </FontLoader>
-      </Suspense>
-    </Providers>
-  )
+  return <Providers>{fontsLoaded ? <RootNavigator /> : null}</Providers>
 }
 
 export default RootLayout
+
+const RootNavigator = () => {
+  Store.toast.set(useToast())
+  return (
+    <Navigator screenOptions={defaultNavOptions}>
+      <Navigator.Screen name='(root)/index' />
+      <Slot />
+    </Navigator>
+  )
+}
