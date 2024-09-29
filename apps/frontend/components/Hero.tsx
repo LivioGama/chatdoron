@@ -1,7 +1,7 @@
 import {Image} from 'expo-image'
 import {useEffect, useState} from 'react'
-import {Platform} from 'react-native'
-import {Box, Center, HStack, Text, VStack} from 'react-native-ficus-ui'
+import {Dimensions, Platform} from 'react-native'
+import {Box, Center, Stack, Text, VStack} from 'react-native-ficus-ui'
 import Animated, {
   runOnJS,
   useAnimatedStyle,
@@ -12,7 +12,7 @@ import Animated, {
 } from 'react-native-reanimated'
 
 export const Hero = ({headerHeight}: {headerHeight: number}) => {
-  const pictureSize = headerHeight * 0.8
+  const pictureSize = Math.min(headerHeight, Dimensions.get('window').width) * 0.8
   const scale = useSharedValue(0.8)
   const opacity = useSharedValue(0)
   const [showShadow, setShowShadow] = useState(false)
@@ -49,9 +49,14 @@ export const Hero = ({headerHeight}: {headerHeight: number}) => {
   })
 
   return (
-    <Center h={headerHeight} bg='#5D6E7A' w='100%'>
+    <Center h={headerHeight} bg='#5D6E7A' w='100%' p={{base: 32, md: 16}}>
       <Box w='100%' maxW={1280}>
-        <HStack justify='space-between' w='100%' alignItems='center'>
+        <Stack
+          flexDirection={{base: 'column', lg: 'row'}}
+          justify='space-between'
+          w='100%'
+          spacing={32}
+          alignItems='center'>
           <Animated.View style={[animatedStyles, showShadow && shadowStyle]}>
             <Image
               source={require('@/assets/merguez.webp')}
@@ -64,15 +69,23 @@ export const Hero = ({headerHeight}: {headerHeight: number}) => {
               }}
             />
           </Animated.View>
-          <VStack alignItems='center' spacing={16}>
-            <Text fontSize='5rem' color='accent' fontFamily='Merriweather_400Regular'>
+          <VStack alignItems='center' spacing={24}>
+            <Text
+              fontSize={{base: 48, md: 96}}
+              color='accent'
+              fontFamily='Merriweather_400Regular'
+              textAlign={{base: 'center', md: 'left'}}>
               Chat d'Oron
             </Text>
-            <Text fontSize='2rem' color='accent' fontFamily='OpenSans_400Regular'>
+            <Text
+              fontSize={{base: 24, md: 32}}
+              color='accent'
+              fontFamily='OpenSans_400Regular'
+              textAlign={{base: 'center', md: 'left'}}>
               Notre plus grand rêve est de t'offrir la vie que tu mérite
             </Text>
           </VStack>
-        </HStack>
+        </Stack>
       </Box>
     </Center>
   )

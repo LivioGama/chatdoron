@@ -8,5 +8,5 @@ export default class Media extends Z.class({
   height: z.number().int().positive(),
   picture: z.string(),
 }) {
-  public calculatedHeight: number | undefined
+  public aspectRatio: number | undefined
 }

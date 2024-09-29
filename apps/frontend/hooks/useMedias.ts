@@ -1,3 +1,4 @@
+import {randomCatPictures} from '@/utils/randomCatPictures'
 import {useInfiniteQuery} from '@tanstack/react-query'
 import times from 'lodash/times'
 import Media from 'models/Media'
@@ -33,6 +34,7 @@ const useMedias = () => {
                 date: new Date(),
                 width: 100,
                 height: 100,
+                picture: randomCatPictures[Math.floor(Math.random() * randomCatPictures.length)],
               })),
               meta: {
                 pagination: {

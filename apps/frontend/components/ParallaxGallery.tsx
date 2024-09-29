@@ -1,36 +1,53 @@
+import {AnimatedGalleryItem} from '@/components/AnimatedGalleryItem'
 import useMedias from '@/hooks/useMedias'
-import {randomCatPictures} from '@/utils/randomCatPictures'
+import useScreenSize from '@/hooks/useScreenSize'
 import {MasonryFlashList} from '@shopify/flash-list'
-import {Image} from 'expo-image'
+import {LinearGradient} from 'expo-linear-gradient'
 import isEmpty from 'lodash/isEmpty'
+import meanBy from 'lodash/meanBy'
+import sortBy from 'lodash/sortBy'
 import Media from 'models/Media'
-import React, {useCallback, useMemo, useState} from 'react'
-import {Dimensions, Image as RNImage} from 'react-native'
+import {ReactElement, useCallback, useEffect, useMemo, useState} from 'react'
+import {Image as RNImage, useWindowDimensions} from 'react-native'
 import {Box, Center, Spinner} from 'react-native-ficus-ui'
 import Animated, {
   interpolate,
   useAnimatedRef,
   useAnimatedStyle,
+  useDerivedValue,
   useScrollViewOffset,
+  useSharedValue,
+  withTiming,
 } from 'react-native-reanimated'
 import useAsyncEffect from 'use-async-effect'
 
-const windowWidth = Dimensions.get('window').width
-const windowHeight = Dimensions.get('window').height
-const GAP = 32
-const columnNum = 5
-
 interface ParallaxGalleryProps {
-  hero: React.ReactElement
+  hero: ReactElement
   headerHeight: number
 }
 
-const ParallaxGallery: React.FC<ParallaxGalleryProps> = ({hero, headerHeight}) => {
+const ParallaxGallery = ({hero, headerHeight}: ParallaxGalleryProps) => {
+  const {isSmallScreen, isTablet, isDesktop} = useScreenSize()
+  const {width: windowWidth} = useWindowDimensions()
+  const [averageItemHeight, setAverageItemHeight] = useState(0)
+
+  const columnNumDerived = useDerivedValue(
+    () => (isSmallScreen ? 2 : isTablet ? 3 : isDesktop ? 4 : 5),
+    [isSmallScreen, isTablet],
+  )
+  const columnNum = columnNumDerived.value
+  const GAP = isSmallScreen ? 12 : 32
+
   const scrollRef = useAnimatedRef<Animated.ScrollView>()
   const scrollOffset = useScrollViewOffset(scrollRef)
   const [measuredMedias, setMeasuredMedias] = useState([])
   const {data, onRefresh, onInfinite, isFetching} = useMedias()
-  const imageWidth = useMemo(() => windowWidth / columnNum, [])
+
+  const imageWidthShared = useSharedValue(windowWidth / columnNum)
+
+  useEffect(() => {
+    imageWidthShared.value = withTiming(windowWidth / columnNum, {duration: 300})
+  }, [windowWidth, columnNum])
 
   const headerAnimatedStyle = useAnimatedStyle(() => ({
     transform: [
@@ -49,16 +66,9 @@ const ParallaxGallery: React.FC<ParallaxGalleryProps> = ({hero, headerHeight}) =
 
   const medias = useMemo(
     () =>
-      data?.pages.flatMap(page =>
-        page.data.map(
-          media =>
-            new Media(
-              Media.parse({
-                ...media,
-                picture: randomCatPictures[Math.floor(Math.random() * randomCatPictures.length)],
-              }),
-            ),
-        ),
+      sortBy(
+        data?.pages.flatMap(page => page.data.map(media => new Media(Media.parse(media)))),
+        'id',
       ),
     [data],
   )
@@ -70,56 +80,41 @@ const ParallaxGallery: React.FC<ParallaxGalleryProps> = ({hero, headerHeight}) =
           media.picture,
           (width, height) => {
             const aspectRatio = width / height
-            const calculatedHeight = imageWidth / aspectRatio
-            resolve({...media, aspectRatio, calculatedHeight})
+            resolve({...media, aspectRatio})
           },
           error => {
             console.error('Error measuring image:', error)
-            resolve({...media, aspectRatio: 1, calculatedHeight: imageWidth})
+            resolve({...media, aspectRatio: 1})
           },
         )
       }),
-    [imageWidth],
+    [],
   )
 
   useAsyncEffect(async () => {
     if (isEmpty(medias)) return
     const newMeasuredMedias = await Promise.all(
       medias.map(async media => {
-        if (media.calculatedHeight) return media
+        if (media.aspectRatio) return media
         return measureImage(media)
       }),
     )
     setMeasuredMedias(newMeasuredMedias)
-  }, [medias, measureImage])
+    setAverageItemHeight(
+      meanBy(newMeasuredMedias, (media: Media) => windowWidth / columnNum / media.aspectRatio),
+    )
+  }, [medias, measureImage, windowWidth, columnNum])
 
   const renderItem = useCallback(
     ({item: media}) => (
-      <Box px={GAP}>
-        <Image
-          alt='Photo Chat'
-          style={{
-            width: imageWidth,
-            height: media.calculatedHeight,
-            borderRadius: 8,
-          }}
-          source={media.picture}
-          contentFit='cover'
-          transition={1000}
-        />
-      </Box>
+      <AnimatedGalleryItem media={media} imageWidthShared={imageWidthShared} GAP={GAP} />
     ),
-    [imageWidth],
+    [imageWidthShared, GAP],
   )
 
-  const averageItemHeight = useMemo(
-    () =>
-      isEmpty(measuredMedias)
-        ? windowHeight / 2
-        : measuredMedias.reduce((sum, media) => sum + media.calculatedHeight, 0) /
-          measuredMedias.length,
-    [measuredMedias],
-  )
+  const shadowAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(scrollOffset.value, [0, headerHeight / 2], [0, 1], 'clamp'),
+  }))
 
   return (
     <Animated.ScrollView ref={scrollRef} scrollEventThrottle={16}>
@@ -133,11 +128,27 @@ const ParallaxGallery: React.FC<ParallaxGalleryProps> = ({hero, headerHeight}) =
         ]}>
         {hero}
       </Animated.View>
+      <Animated.View
+        style={[
+          {
+            position: 'absolute',
+            top: headerHeight,
+            left: 0,
+            right: 0,
+            height: 80,
+            zIndex: 1,
+          },
+          shadowAnimatedStyle,
+        ]}>
+        <LinearGradient colors={['rgba(0,0,0,0.3)', 'transparent']} style={{flex: 1}} />
+      </Animated.View>
       {isEmpty(medias) ? (
         <Spinner size='large' />
       ) : (
         <MasonryFlashList
           data={measuredMedias}
+          keyExtractor={(item: Media) => item.id.toString()}
+          getItemType={item => 'image'}
           numColumns={columnNum}
           renderItem={renderItem}
           estimatedItemSize={averageItemHeight}

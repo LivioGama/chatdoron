@@ -16,13 +16,5 @@
     "expo-rebuild-clean-ios": "bunx expo prebuild -p ios --clean",
     "expo-rebuild-clean-android": "bunx expo prebuild -p android --clean",
     "watchman-del": "command -v watchman >/dev/null 2>&1 && watchman watch-del '../../' || echo 'Watchman not found (`brew install watchman`), skipping.'"
-  },
-  "dependencies": {
-    "expo": "~51.0.28",
-    "react": "18.2.0",
-    "react-native": "0.74.5",
-    "react-native-ficus-ui": "^1.0.0",
-    "react-native-reanimated": "^3.15.3",
-    "react-native-virtualized-masonry": "^0.1.1"
   }
 }
