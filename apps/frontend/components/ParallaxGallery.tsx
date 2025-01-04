@@ -5,11 +5,10 @@ import {MasonryFlashList} from '@shopify/flash-list'
 import {LinearGradient} from 'expo-linear-gradient'
 import isEmpty from 'lodash/isEmpty'
 import meanBy from 'lodash/meanBy'
-import sortBy from 'lodash/sortBy'
 import Media from 'models/Media'
-import {ReactElement, useCallback, useEffect, useMemo, useState} from 'react'
+import {ReactElement, useCallback, useEffect, useState} from 'react'
 import {Image as RNImage, useWindowDimensions} from 'react-native'
-import {Box, Center, Spinner} from 'react-native-ficus-ui'
+import {Box, Spinner} from 'react-native-ficus-ui'
 import Animated, {
   interpolate,
   useAnimatedRef,
@@ -41,7 +40,7 @@ const ParallaxGallery = ({hero, headerHeight}: ParallaxGalleryProps) => {
   const scrollRef = useAnimatedRef<Animated.ScrollView>()
   const scrollOffset = useScrollViewOffset(scrollRef)
   const [measuredMedias, setMeasuredMedias] = useState([])
-  const {data, onRefresh, onInfinite, isFetching} = useMedias()
+  const {data: medias} = useMedias()
 
   const imageWidthShared = useSharedValue(windowWidth / columnNum)
 
@@ -63,15 +62,6 @@ const ParallaxGallery = ({hero, headerHeight}: ParallaxGalleryProps) => {
       },
     ] as const,
   }))
-
-  const medias = useMemo(
-    () =>
-      sortBy(
-        data?.pages.flatMap(page => page.data.map(media => new Media(Media.parse(media)))),
-        'id',
-      ),
-    [data],
-  )
 
   const measureImage = useCallback(
     (media: Media) =>
@@ -147,28 +137,18 @@ const ParallaxGallery = ({hero, headerHeight}: ParallaxGalleryProps) => {
       ) : (
         <MasonryFlashList
           data={measuredMedias}
-          keyExtractor={(item: Media) => item.id.toString()}
+          keyExtractor={(item: Media) => item.picture}
           getItemType={item => 'image'}
           numColumns={columnNum}
           renderItem={renderItem}
           estimatedItemSize={averageItemHeight}
-          onRefresh={onRefresh}
           contentContainerStyle={{
             paddingHorizontal: GAP / 2,
             paddingVertical: GAP,
             backgroundColor: '#E6DBC8',
           }}
-          onEndReached={onInfinite}
           onEndReachedThreshold={0.5}
           ItemSeparatorComponent={() => <Box h={GAP} />}
-          refreshing={isFetching}
-          ListFooterComponent={
-            isFetching && (
-              <Center w='100%' h={50}>
-                <Spinner size={14} animating={isFetching} color='grey' />
-              </Center>
-            )
-          }
         />
       )}
     </Animated.ScrollView>

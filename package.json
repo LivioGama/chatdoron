@@ -45,6 +45,7 @@
     "expo-image": "^1.13.0",
     "expo-linear-gradient": "^13.0.2",
     "expo-router": "^3.5.23",
+    "imagekit-javascript": "^3.0.2",
     "lodash": "^4.17.21",
     "models": "workspace:*",
     "openai": "^4.29.0",

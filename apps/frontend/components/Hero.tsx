@@ -82,7 +82,7 @@ export const Hero = ({headerHeight}: {headerHeight: number}) => {
               color='accent'
               fontFamily='OpenSans_400Regular'
               textAlign={{base: 'center', md: 'left'}}>
-              Notre plus grand rêve est de t'offrir la vie que tu mérite
+              Notre plus grand rêve est que tu aies la vie que tu mérites
             </Text>
           </VStack>
         </Stack>

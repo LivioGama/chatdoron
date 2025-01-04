@@ -1,73 +1,109 @@
-import {randomCatPictures} from '@/utils/randomCatPictures'
-import {useInfiniteQuery} from '@tanstack/react-query'
-import times from 'lodash/times'
 import Media from 'models/Media'
-import {useCallback} from 'react'
 
-const PAGE_SIZE = 40
-const TOTAL_COUNT = 1200
-const INITIAL_PAGE_PARAM = 1
+const list = [
+  '1683028653000.jpeg',
+  '1680974173000.jpeg',
+  '1680974174000.jpeg',
+  '1682950224000.jpeg',
+  '1683215486000.jpeg',
+  '1683215956000.jpeg',
+  '1683285147000.jpeg',
+  '1683286404000.jpeg',
+  '1686054166000.jpeg',
+  '1686054169000.jpeg',
+  '1686430174000.jpeg',
+  '1688602120000.jpeg',
+  '1693001204000.jpeg',
+  '1693003387000.jpeg',
+  '1694719621000.jpeg',
+  '1694719632000.jpeg',
+  '1694719691000.jpeg',
+  '1694719826000.jpeg',
+  '1694847061000.jpeg',
+  '1694847141000.jpeg',
+  '1694847183000.jpeg',
+  '1694847235000.jpeg',
+  '1698672844000.jpeg',
+  '1698672865000.jpeg',
+  '1702529688000.jpeg',
+  '1702588008000.jpeg',
+  '1703868390000.jpeg',
+  '1705701616000.jpeg',
+  '1705701634000.jpeg',
+  '1705701635000.jpeg',
+  '1705701695000.jpeg',
+  '1705701703000.jpeg',
+  '1705701710000.jpeg',
+  '1705816939000.jpeg',
+  '1706364428000.jpeg',
+  '1706364436000.jpeg',
+  '1706514718000.jpeg',
+  '1709139301000.jpeg',
+  '1709140397000.jpeg',
+  '1713445259000.jpeg',
+  '1714492368000.jpeg',
+  '1714492446000.jpeg',
+  '1720549261000.jpeg',
+  '1723345643000.jpeg',
+  '1724271964000.jpeg',
+  '1725360995000.jpeg',
+  '1725954591000.jpeg',
+  '1725954595000.jpeg',
+  '1725954609000.jpeg',
+  '1725954647000.jpeg',
+  '1725958704000.jpeg',
+  '1726224170000.jpeg',
+  '1726224177000.jpeg',
+  '1726224193000.jpeg',
+  '1726235020000.jpeg',
+  '1726906840000.jpeg',
+  '1726906890000.jpeg',
+  '1726906894000.jpeg',
+  '1726906899000.jpeg',
+  '1726906904000.jpeg',
+  '1726906908000.jpeg',
+  '1726906910000.jpeg',
+  '1727295996000.jpeg',
+  '1727432949000.jpeg',
+  '1727432965000.jpeg',
+  '1727432984000.jpeg',
+  '1727432999000.jpeg',
+  '1727507494000.jpeg',
+  '1727507497000.jpeg',
+  '1727507518000.jpeg',
+  '1727507522000.jpeg',
+  '1728921654000.jpeg',
+  '1728921817000.jpeg',
+  '1728921995000.jpeg',
+  '1728921998000.jpeg',
+  '1729036765000.jpeg',
+  '1729110232000.jpeg',
+  '1729630615000.jpeg',
+  '1729631243000.jpeg',
+  '1730009806000.jpeg',
+  '1730009835000.jpeg',
+  '1730096072000.jpeg',
+  '1730105413000.jpeg',
+  '1730228865000.jpeg',
+  '1730278697000.jpeg',
+  '1730278699000.jpeg',
+  '1732117309000.jpeg',
+  '1732123972000.jpeg',
+  '1732380177000.jpeg',
+  '1735894309000.jpeg',
+  // '1686572461000.mov',
+  // '1694847300000.mov',
+  // '1698672840000.mov',
+  // '1708356720000.mov',
+  // '1709139300000.mov',
+  // '1728905220000.mov',
+]
 
-type ApiResponse = {
-  data: Partial<Media>[]
-  meta: {
-    pagination: {
-      page?: number
-      pageSize: number
-      pageCount: number
-      total: number
-    }
-  }
-}
-
-const useMedias = () => {
-  const {data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching, refetch, error} =
-    useInfiniteQuery<ApiResponse>({
-      queryKey: ['medias'],
-      queryFn: ({pageParam = 1}) =>
-        new Promise<ApiResponse>(resolve => {
-          setTimeout(() => {
-            // Add a small delay to simulate network request
-            resolve({
-              data: times(PAGE_SIZE, index => ({
-                id: (((pageParam as number) - 1) * PAGE_SIZE + index + 1).toString(),
-                date: new Date(),
-                width: 100,
-                height: 100,
-                picture: randomCatPictures[Math.floor(Math.random() * randomCatPictures.length)],
-              })),
-              meta: {
-                pagination: {
-                  page: pageParam as number,
-                  pageSize: PAGE_SIZE,
-                  pageCount: Math.ceil(TOTAL_COUNT / PAGE_SIZE),
-                  total: TOTAL_COUNT,
-                },
-              },
-            })
-          }, 40)
-        }),
-      getNextPageParam: lastPage => {
-        if (lastPage?.meta?.pagination?.page < lastPage?.meta?.pagination?.pageCount) {
-          return lastPage.meta.pagination.page + 1
-        }
-        return undefined
-      },
-      initialPageParam: INITIAL_PAGE_PARAM,
-    })
-
-  const onRefresh = useCallback(() => refetch(), [refetch])
-
-  const onInfinite = () => hasNextPage && !isFetchingNextPage && !isFetching && fetchNextPage()
-
-  return {
-    data,
-    onRefresh,
-    onInfinite,
-    isFetchingNextPage,
-    isFetching,
-    error,
-  }
-}
+const useMedias = () => ({
+  data: list.map(file => ({
+    id: file,
+    picture: `https://ik.imagekit.io/nd0koqz3s/chatdoron/${file}`,
+  })) as Media[],
+})
 
 export default useMedias
