@@ -4,6 +4,7 @@ import {Z} from 'zod-class'
 export default class Media extends Z.class({
   id: z.string(),
   date: z.coerce.date(),
+  story: z.string().nullish(),
   width: z.number().int().positive(),
   height: z.number().int().positive(),
   picture: z.string(),

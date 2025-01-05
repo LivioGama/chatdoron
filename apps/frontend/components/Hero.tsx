@@ -71,14 +71,14 @@ export const Hero = ({headerHeight}: {headerHeight: number}) => {
           </Animated.View>
           <VStack alignItems='center' spacing={24}>
             <Text
-              fontSize={{base: 48, md: 96}}
+              fontSize={48}
               color='accent'
               fontFamily='Merriweather_400Regular'
               textAlign={{base: 'center', md: 'left'}}>
               Chat d'Oron
             </Text>
             <Text
-              fontSize={{base: 24, md: 32}}
+              fontSize={24}
               color='accent'
               fontFamily='OpenSans_400Regular'
               textAlign={{base: 'center', md: 'left'}}>

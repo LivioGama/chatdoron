@@ -22,6 +22,9 @@ const customTheme = {
     '5xl': 48,
   },
   components: {
+    Text: {
+      fontFamily: 'OpenSans_400Regular',
+    },
     Button: {
       baseStyle: {
         borderRadius: 8,

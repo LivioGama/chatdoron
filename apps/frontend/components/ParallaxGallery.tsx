@@ -35,7 +35,7 @@ const ParallaxGallery = ({hero, headerHeight}: ParallaxGalleryProps) => {
     [isSmallScreen, isTablet],
   )
   const columnNum = columnNumDerived.value
-  const GAP = isSmallScreen ? 12 : 32
+  const GAP = isSmallScreen ? 12 : 16
 
   const scrollRef = useAnimatedRef<Animated.ScrollView>()
   const scrollOffset = useScrollViewOffset(scrollRef)
@@ -97,7 +97,9 @@ const ParallaxGallery = ({hero, headerHeight}: ParallaxGalleryProps) => {
 
   const renderItem = useCallback(
     ({item: media}) => (
-      <AnimatedGalleryItem media={media} imageWidthShared={imageWidthShared} GAP={GAP} />
+      <Box mr={GAP}>
+        <AnimatedGalleryItem media={media} imageWidthShared={imageWidthShared} GAP={GAP} />
+      </Box>
     ),
     [imageWidthShared, GAP],
   )
@@ -137,13 +139,12 @@ const ParallaxGallery = ({hero, headerHeight}: ParallaxGalleryProps) => {
       ) : (
         <MasonryFlashList
           data={measuredMedias}
-          keyExtractor={(item: Media) => item.picture}
-          getItemType={item => 'image'}
+          keyExtractor={(item: Media) => item.id}
           numColumns={columnNum}
           renderItem={renderItem}
           estimatedItemSize={averageItemHeight}
           contentContainerStyle={{
-            paddingHorizontal: GAP / 2,
+            paddingLeft: GAP,
             paddingVertical: GAP,
             backgroundColor: '#E6DBC8',
           }}
