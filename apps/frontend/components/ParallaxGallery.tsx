@@ -2,23 +2,13 @@ import {AnimatedGalleryItem} from '@/components/AnimatedGalleryItem'
 import useMedias from '@/hooks/useMedias'
 import useScreenSize from '@/hooks/useScreenSize'
 import {MasonryFlashList} from '@shopify/flash-list'
-import {LinearGradient} from 'expo-linear-gradient'
 import isEmpty from 'lodash/isEmpty'
-import meanBy from 'lodash/meanBy'
 import Media from 'models/Media'
-import {ReactElement, useCallback, useEffect, useState} from 'react'
-import {Image as RNImage, useWindowDimensions} from 'react-native'
+import {ReactElement, useCallback, useEffect} from 'react'
+import {ScrollView, useWindowDimensions, View} from 'react-native'
 import {Box, Spinner} from 'react-native-ficus-ui'
-import Animated, {
-  interpolate,
-  useAnimatedRef,
-  useAnimatedStyle,
-  useDerivedValue,
-  useScrollViewOffset,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated'
-import useAsyncEffect from 'use-async-effect'
+import {useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated'
+import {GAP} from 'models/consts'
 
 interface ParallaxGalleryProps {
   hero: ReactElement
@@ -28,18 +18,13 @@ interface ParallaxGalleryProps {
 const ParallaxGallery = ({hero, headerHeight}: ParallaxGalleryProps) => {
   const {isSmallScreen, isTablet, isDesktop} = useScreenSize()
   const {width: windowWidth} = useWindowDimensions()
-  const [averageItemHeight, setAverageItemHeight] = useState(0)
 
   const columnNumDerived = useDerivedValue(
     () => (isSmallScreen ? 2 : isTablet ? 3 : isDesktop ? 4 : 5),
     [isSmallScreen, isTablet],
   )
   const columnNum = columnNumDerived.value
-  const GAP = isSmallScreen ? 12 : 16
 
-  const scrollRef = useAnimatedRef<Animated.ScrollView>()
-  const scrollOffset = useScrollViewOffset(scrollRef)
-  const [measuredMedias, setMeasuredMedias] = useState([])
   const {data: medias} = useMedias()
 
   const imageWidthShared = useSharedValue(windowWidth / columnNum)
@@ -48,111 +33,43 @@ const ParallaxGallery = ({hero, headerHeight}: ParallaxGalleryProps) => {
     imageWidthShared.value = withTiming(windowWidth / columnNum, {duration: 300})
   }, [windowWidth, columnNum])
 
-  const headerAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateY: interpolate(
-          scrollOffset.value,
-          [-headerHeight, 0, headerHeight],
-          [-headerHeight / 2, 0, headerHeight * 0.75],
-        ),
-      },
-      {
-        scale: interpolate(scrollOffset.value, [-headerHeight, 0, headerHeight], [2, 1, 1]),
-      },
-    ] as const,
-  }))
-
-  const measureImage = useCallback(
-    (media: Media) =>
-      new Promise(resolve => {
-        RNImage.getSize(
-          media.picture,
-          (width, height) => {
-            const aspectRatio = width / height
-            resolve({...media, aspectRatio})
-          },
-          error => {
-            console.error('Error measuring image:', error)
-            resolve({...media, aspectRatio: 1})
-          },
-        )
-      }),
-    [],
-  )
-
-  useAsyncEffect(async () => {
-    if (isEmpty(medias)) return
-    const newMeasuredMedias = await Promise.all(
-      medias.map(async media => {
-        if (media.aspectRatio) return media
-        return measureImage(media)
-      }),
-    )
-    setMeasuredMedias(newMeasuredMedias)
-    setAverageItemHeight(
-      meanBy(newMeasuredMedias, (media: Media) => windowWidth / columnNum / media.aspectRatio),
-    )
-  }, [medias, measureImage, windowWidth, columnNum])
-
   const renderItem = useCallback(
     ({item: media}) => (
       <Box mr={GAP}>
-        <AnimatedGalleryItem media={media} imageWidthShared={imageWidthShared} GAP={GAP} />
+        <AnimatedGalleryItem media={media} imageWidthShared={imageWidthShared} />
       </Box>
     ),
-    [imageWidthShared, GAP],
+    [imageWidthShared],
   )
-
-  const shadowAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(scrollOffset.value, [0, headerHeight / 2], [0, 1], 'clamp'),
-  }))
-
   return (
-    <Animated.ScrollView ref={scrollRef} scrollEventThrottle={16}>
-      <Animated.View
+    <ScrollView>
+      <View
         style={[
           {
             height: headerHeight,
             overflow: 'hidden',
           },
-          headerAnimatedStyle,
         ]}>
         {hero}
-      </Animated.View>
-      <Animated.View
-        style={[
-          {
-            position: 'absolute',
-            top: headerHeight,
-            left: 0,
-            right: 0,
-            height: 80,
-            zIndex: 1,
-          },
-          shadowAnimatedStyle,
-        ]}>
-        <LinearGradient colors={['rgba(0,0,0,0.3)', 'transparent']} style={{flex: 1}} />
-      </Animated.View>
+      </View>
       {isEmpty(medias) ? (
         <Spinner size='large' />
       ) : (
         <MasonryFlashList
-          data={measuredMedias}
+          data={medias}
           keyExtractor={(item: Media) => item.id}
           numColumns={columnNum}
           renderItem={renderItem}
-          estimatedItemSize={averageItemHeight}
+          estimatedItemSize={265}
           contentContainerStyle={{
             paddingLeft: GAP,
             paddingVertical: GAP,
             backgroundColor: '#E6DBC8',
           }}
-          onEndReachedThreshold={0.5}
           ItemSeparatorComponent={() => <Box h={GAP} />}
         />
       )}
-    </Animated.ScrollView>
+    </ScrollView>
   )
 }
 

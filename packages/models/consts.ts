@@ -16,3 +16,5 @@ export const springTransition = {
 export const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL
 
 export const SLACK_CHANNEL = process.env.SLACK_CHANNEL
+
+export const GAP = 14

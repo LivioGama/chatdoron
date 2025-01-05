@@ -55,7 +55,7 @@ const list = [
   {path: '1725954595000.jpeg', story: ``},
   {path: '1725954609000.jpeg', story: ``},
   {path: '1725954647000.jpeg', story: ``},
-  {path: '1725958704000.jpeg', story: `f`},
+  {path: '1725958704000.jpeg', story: ``},
   {path: '1726224170000.jpeg', story: ``},
   {path: '1726224177000.jpeg', story: `On dirait que ça revient...`},
   {path: '1726224193000.jpeg', story: ``},

@@ -1,21 +1,31 @@
 import {Image} from 'expo-image'
 import Media from 'models/Media'
-import {memo} from 'react'
-import {StyleSheet} from 'react-native'
+import {memo, useEffect, useState} from 'react'
+import {StyleSheet, Image as RNImage} from 'react-native'
 import {Box, Text} from 'react-native-ficus-ui'
-import Animated, {useAnimatedStyle} from 'react-native-reanimated'
 import dayjs from 'dayjs'
 
 export const AnimatedGalleryItem = memo(
-  ({media, imageWidthShared, GAP}: {media: Media; imageWidthShared: any; GAP: number}) => {
-    const animatedImageStyle = useAnimatedStyle(() => ({
-      width: '100%',
-      height: imageWidthShared.value / media.aspectRatio,
-    }))
+  ({media, imageWidthShared}: {media: Media; imageWidthShared: any}) => {
+    const [aspectRatio, setAspectRatio] = useState(media.aspectRatio || 1)
+    useEffect(() => {
+      if (!media.aspectRatio) {
+        RNImage.getSize(
+          media.picture,
+          (width, height) => {
+            setAspectRatio(width / height)
+          },
+          error => {
+            console.error('Error measuring image:', error)
+            setAspectRatio(1)
+          },
+        )
+      }
+    }, [media.picture, media.aspectRatio])
 
     return (
       <Box>
-        <Animated.View style={animatedImageStyle}>
+        <Box w='100%' h={imageWidthShared.value / aspectRatio}>
           <Image
             alt='Photo Chat'
             style={{
@@ -43,7 +53,7 @@ export const AnimatedGalleryItem = memo(
             numberOfLines={1}>
             {dayjs(media.date).format('DD/MM/YYYY')}
           </Text>
-        </Animated.View>
+        </Box>
         {media.story && (
           <Text p={5} color='#1C3D5A' fontSize='xs'>
             {media.story}
@@ -54,8 +64,7 @@ export const AnimatedGalleryItem = memo(
   },
   (prevProps, nextProps) =>
     prevProps.media.id === nextProps.media.id &&
-    prevProps.imageWidthShared === nextProps.imageWidthShared &&
-    prevProps.GAP === nextProps.GAP,
+    prevProps.imageWidthShared === nextProps.imageWidthShared,
 )
 
 AnimatedGalleryItem.displayName = 'AnimatedGalleryItem'
